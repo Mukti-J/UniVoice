@@ -1,67 +1,50 @@
-## Foundry
+# 🎓 UniVoice DApp
+Aplikasi Kotak Aspirasi Transparan Berbasis Blockchain Ethereum (Lokal). Tugas Rancang (TR) Teknologi Blockchain.
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+## 📌 Informasi Jaringan & Kontrak
+- **RPC Endpoint** : `http://127.0.0.1:8545` (Anvil Local Node)
+- **Chain ID**     : `31337`
+- **Alamat Kontrak**: `0x5FbDB2315678afecb367f032d93F642f64180aa3`
+- **TX Hash Deploy**: `0x6fcaa0c858a68e146633600c9fa3619e69399ed85acdebb59a1de40d57bb6226`
 
-Foundry consists of:
+## ⚙️ Prasyarat (Prerequisites)
+Pastikan sistem Anda telah terpasang perangkat lunak berikut:
+- WSL2 Ubuntu 24.04
+- Foundry (`forge`, `anvil`, `cast`)
+- Node.js & `npm`
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+---
 
-## Documentation
+## 🚀 Panduan Setup & Menjalankan Aplikasi
 
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+**1. Clone Repository & Masuk ke Folder**
+```
+git clone https://github.com/Mukti-J/UniVoice.git
+cd UniVoice
 ```
 
-### Test
-
-```shell
-$ forge test
+**2. Build & Test Smart Contract**
+``` 
+forge build
+forge test -vv
 ```
 
-### Format
-
-```shell
-$ forge fmt
+**3. Jalankan Node Lokal (Buka Terminal Baru)**
+```
+anvil
 ```
 
-### Gas Snapshots
+**4. Deploy Kontrak (Kembali ke Terminal Proyek)**
+``` 
+export PK=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+export ADMIN=0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 
-```shell
-$ forge snapshot
+forge create src/UniVoice.sol:UniVoice --rpc-url [http://127.0.0.1:8545](http://127.0.0.1:8545) --private-key $PK --broadcast --constructor-args$ADMIN
 ```
 
-### Anvil
-
-```shell
-$ anvil
+**5. Jalankan DApp CLI (Interaksi Aplikasi)**
 ```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+cd app
+npm install
+node univoice.mjs
 ```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
-`

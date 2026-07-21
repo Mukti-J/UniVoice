@@ -1,0 +1,32 @@
+═══════════════════════════════════════════════
+  BUKTI DEPLOY & TRANSAKSI — UniVoice DApp
+═══════════════════════════════════════════════
+
+1. DEPLOY KONTRAK
+   Alamat Kontrak : 0x5FbDB2315678afecb367f032d93F642f64180aa3
+   TX Hash Deploy : 0x6fcaa0c858a68e146633600c9fa3619e69399ed85acdebb59a1de40d57bb6226.
+   Gas Terpakai   : 1224652
+
+2. TRANSAKSI WRITE
+   Write 1 (Kirim Aspirasi #1)
+     TX Hash  : 0x15e87b218ef72475df2f8a4d0bdc856d7949d3db6e99f0623b53ff43122224ac
+     Gas Used : 210232
+   Write 2 (Kirim Aspirasi #2)
+     TX Hash  : 0xd314b707b547689800c25d46ddcce610492d93455d6b764a611a4f3773056816
+     Gas Used : 193024
+   Write 3 (Dukung Aspirasi #1)
+     TX Hash  : 0x53c1a31b6db508ab93ff7fe9f219f675bf89db68c53a9235b111efe4b07619f4
+     Gas Used : 70903
+   Write 4 (Ubah Status #1 → Diproses)
+     TX Hash  : 0xa794abf6d45c25480ae2a32d3c2a588036f8d60773b95f1dc61890e3132dd5a7
+     Gas Used : 50514
+
+3. TRANSAKSI READ
+   Query getJumlahAspirasi() → 2
+   Query getAspirasi(1) → Kategori: Fasilitas, Status: Diproses, Dukungan: 1
+
+4. PERUBAHAN STATE
+   Sebelum Write 3: Aspirasi #1 jumlahDukungan = 0
+   Sesudah Write 3: Aspirasi #1 jumlahDukungan = 1
+   Sebelum Write 4: Aspirasi #1 status = Diajukan (0)
+   Sesudah Write 4: Aspirasi #1 status = Diproses (1)

@@ -8,8 +8,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "ethers": "^6.17.0"
-  }
+  },
+  "description": ""
 }
