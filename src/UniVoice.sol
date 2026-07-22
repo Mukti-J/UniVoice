@@ -85,6 +85,12 @@ contract UniVoice {
         require(msg.sender == admin, "UniVoice: hanya admin/BEM");
         _;
     }
+    /// @notice Admin/BEM harus netral: dilarang jadi peserta (kirim aspirasi / vote).
+    /// @dev Kebalikan dari onlyAdmin. Menjaga admin tetap penengah, bukan pihak berkepentingan.
+    modifier bukanAdmin() {
+        require(msg.sender != admin, "UniVoice: admin/BEM harus netral, dilarang jadi peserta");
+        _;
+    }
 
     modifier aspirasiExist(uint256 _id) {
         require(_id > 0 && _id <= jumlahAspirasi, "UniVoice: ID tidak valid");
@@ -103,11 +109,11 @@ contract UniVoice {
     //  WRITE FUNCTIONS
     // ══════════════════════════════════════════════
 
-    /// @notice WRITE 1 — Mahasiswa kirim aspirasi baru
+    /// @notice WRITE 1 — Mahasiswa kirim aspirasi baru (ADMIN DILARANG)
     function kirimAspirasi(
         string calldata _kategori,
         string calldata _deskripsi
-    ) external {
+    ) external bukanAdmin {                       // <-- tambahan: admin revert di sini
         require(bytes(_kategori).length > 0, "UniVoice: kategori kosong");
         require(bytes(_deskripsi).length > 0, "UniVoice: deskripsi kosong");
 
@@ -127,7 +133,7 @@ contract UniVoice {
     }
 
     /// @notice WRITE 2 — Upvote (hanya saat Diajukan / Diproses)
-    function dukungAspirasi(uint256 _id) external aspirasiExist(_id) {
+    function dukungAspirasi(uint256 _id) external bukanAdmin aspirasiExist(_id) {
         require(
             _aspirasi[_id].status != Status.Selesai &&
             _aspirasi[_id].status != Status.Ditolak,
@@ -142,7 +148,7 @@ contract UniVoice {
     }
 
     /// @notice WRITE 3 — Unvote / batalkan dukungan
-    function batalkanDukungan(uint256 _id) external aspirasiExist(_id) {
+    function batalkanDukungan(uint256 _id) external bukanAdmin aspirasiExist(_id) {
         require(_pendukung[_id][msg.sender], "UniVoice: belum mendukung");
 
         _pendukung[_id][msg.sender] = false;
