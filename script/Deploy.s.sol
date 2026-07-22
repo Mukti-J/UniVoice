@@ -6,12 +6,13 @@ import "../src/UniVoice.sol";
 
 contract DeployUniVoice is Script {
     function run() external {
-        // Akun #0 Anvil (admin / BEM)
+        // Ambil Private Key dari environment variable
         uint256 deployerPrivateKey = vm.envUint("PK");
         address adminAddress = vm.addr(deployerPrivateKey);
 
         vm.startBroadcast(deployerPrivateKey);
 
+        // Deploy kontrak dengan parameter admin
         UniVoice uniVoice = new UniVoice(adminAddress);
 
         vm.stopBroadcast();

@@ -18,7 +18,7 @@ contract UniVoice {
 
     struct Aspirasi {
         uint256 id;
-        string  kategori;
+        string  kategori; // contohnya "Fasilitas" | "Akademik" | "UKM" | dll.
         string  deskripsi;
         Status  status;
         uint256 jumlahDukungan;
