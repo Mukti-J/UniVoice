@@ -169,36 +169,37 @@ contract UniVoiceTest is Test {
         UniVoice.AspirasiView[] memory semua = uv.getAllAspirasi();
         assertEq(semua.length, 2);
     }
+
+    // ── ADMIN DILARANG KIRIM ASPIRASI (netralitas) ──
+    function testAdminTidakBolehKirimAspirasi() public {
+        vm.prank(admin);
+        vm.expectRevert("UniVoice: admin/BEM harus netral, dilarang jadi peserta");
+        uv.kirimAspirasi("Fasilitas", "Coba-coba kirim sebagai admin");
+
+        // state tidak berubah (atomicity): tetap 0 aspirasi
+        assertEq(uv.getJumlahAspirasi(), 0);
 }
 
-// ── ADMIN DILARANG KIRIM ASPIRASI (netralitas) ──
-function testAdminTidakBolehKirimAspirasi() public {
-    vm.prank(admin);
-    vm.expectRevert("UniVoice: admin/BEM harus netral, dilarang jadi peserta");
-    uv.kirimAspirasi("Fasilitas", "Coba-coba kirim sebagai admin");
+    // ── (PAKAI HANYA JIKA Anda mengaktifkan opsi netral penuh di 1.c) ──
+    function testAdminTidakBolehUpvote() public {
+        vm.prank(mhs1);
+        uv.kirimAspirasi("Akademik", "Aspirasi mahasiswa");
 
-    // state tidak berubah (atomicity): tetap 0 aspirasi
-    assertEq(uv.getJumlahAspirasi(), 0);
+        vm.prank(admin);
+        vm.expectRevert("UniVoice: admin/BEM harus netral, dilarang jadi peserta");
+        uv.dukungAspirasi(1);
 }
 
-// ── (PAKAI HANYA JIKA Anda mengaktifkan opsi netral penuh di 1.c) ──
-function testAdminTidakBolehUpvote() public {
-    vm.prank(mhs1);
-    uv.kirimAspirasi("Akademik", "Aspirasi mahasiswa");
-
-    vm.prank(admin);
-    vm.expectRevert("UniVoice: admin/BEM harus netral, dilarang jadi peserta");
-    uv.dukungAspirasi(1);
+    // ── Pastikan admin TETAP bisa mengelola (tidak ikut terblokir) ──
+    function testAdminTetapBisaUbahStatus() public {
+        vm.prank(mhs1);
+        uv.kirimAspirasi("Fasilitas", "AC rusak");
+    
+        vm.prank(admin);
+        uv.ubahStatus(1, UniVoice.Status.Diproses);   // harus sukses
+    
+        UniVoice.AspirasiView memory a = uv.getAspirasi(1);
+        assertEq(a.status, 1);
 }
 
-// ── Pastikan admin TETAP bisa mengelola (tidak ikut terblokir) ──
-function testAdminTetapBisaUbahStatus() public {
-    vm.prank(mhs1);
-    uv.kirimAspirasi("Fasilitas", "AC rusak");
-
-    vm.prank(admin);
-    uv.ubahStatus(1, UniVoice.Status.Diproses);   // harus sukses
-
-    UniVoice.AspirasiView memory a = uv.getAspirasi(1);
-    assertEq(a.status, 1);
 }
