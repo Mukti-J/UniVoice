@@ -1,32 +1,102 @@
-═══════════════════════════════════════════════
-  BUKTI DEPLOY & TRANSAKSI — UniVoice DApp
-═══════════════════════════════════════════════
+═══════════════════════════════════════════════════════════
+  BUKTI DEPLOY & TRANSAKSI — UniVoice DApp (Web + MetaMask)
+  Node: Anvil Local | RPC: http://127.0.0.1:8545 | Chain ID: 31337
+═══════════════════════════════════════════════════════════
 
-1. DEPLOY KONTRAK
+───────────────────────────────────────────────────────────
+1. DEPLOY KONTRAK (write — contract creation)
+───────────────────────────────────────────────────────────
    Alamat Kontrak : 0x5FbDB2315678afecb367f032d93F642f64180aa3
-   TX Hash Deploy : 0x6fcaa0c858a68e146633600c9fa3619e69399ed85acdebb59a1de40d57bb6226.
+   Deployer/Admin : 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+   TX Hash Deploy : 0x6fcaa0c858a68e146633600c9fa3619e69399ed85acdebb59a1de40d57bb6226
    Gas Terpakai   : 1224652
 
-2. TRANSAKSI WRITE
-   Write 1 (Kirim Aspirasi #1)
+───────────────────────────────────────────────────────────
+2. TRANSAKSI WRITE (sukses, via Web App + MetaMask)
+───────────────────────────────────────────────────────────
+   Write 1 — Kirim Aspirasi #1 (oleh Mahasiswa 0x3C44...93BC)
      TX Hash  : 0x15e87b218ef72475df2f8a4d0bdc856d7949d3db6e99f0623b53ff43122224ac
      Gas Used : 210232
-   Write 2 (Kirim Aspirasi #2)
+   Write 2 — Kirim Aspirasi #2 (oleh Mahasiswa 0x7099...79C8)
      TX Hash  : 0xd314b707b547689800c25d46ddcce610492d93455d6b764a611a4f3773056816
      Gas Used : 193024
-   Write 3 (Dukung Aspirasi #1)
+   Write 3 — Dukung/Upvote Aspirasi #1
      TX Hash  : 0x53c1a31b6db508ab93ff7fe9f219f675bf89db68c53a9235b111efe4b07619f4
      Gas Used : 70903
-   Write 4 (Ubah Status #1 → Diproses)
+   Write 4 — Ubah Status #1 → Diproses (oleh Admin)
      TX Hash  : 0xa794abf6d45c25480ae2a32d3c2a588036f8d60773b95f1dc61890e3132dd5a7
      Gas Used : 50514
+   Write 5 — Tolak Aspirasi (soft-delete) + catatan alasan (oleh Admin)  [PENGUAT]
+     TX Hash  : <ISI: tx hash dari MetaMask Activity>
+     Gas Used : <ISI: dari cast receipt>
+     Catatan  : status berubah jadi Ditolak(3), data TETAP ada di chain (anti-sensor)
 
-3. TRANSAKSI READ
-   Query getJumlahAspirasi() → 2
-   Query getAspirasi(1) → Kategori: Fasilitas, Status: Diproses, Dukungan: 1
+───────────────────────────────────────────────────────────
+3. TRANSAKSI READ (query, tanpa gas / cast call)
+───────────────────────────────────────────────────────────
+   getJumlahAspirasi()  → 2
+   getAspirasi(1)       → Kategori: Fasilitas | Status: Diproses | Dukungan: 1
+   getAllAspirasi()     → merender seluruh daftar di UI Web App
 
-4. PERUBAHAN STATE
-   Sebelum Write 3: Aspirasi #1 jumlahDukungan = 0
-   Sesudah Write 3: Aspirasi #1 jumlahDukungan = 1
-   Sebelum Write 4: Aspirasi #1 status = Diajukan (0)
-   Sesudah Write 4: Aspirasi #1 status = Diproses (1)
+───────────────────────────────────────────────────────────
+4. PERUBAHAN STATE (bukti on-chain)
+───────────────────────────────────────────────────────────
+   Aspirasi #1 jumlahDukungan : 0  →  1   (sesudah Write 3)
+   Aspirasi #1 status         : Diajukan(0) → Diproses(1)   (sesudah Write 4)
+   Aspirasi #X status         : Diajukan(0) → Ditolak(3) + catatanAdmin terisi  [PENGUAT]
+
+───────────────────────────────────────────────────────────
+5. BUKTI KEAMANAN — transaksi REVERT (access control bekerja)  [PENGUAT]
+   (status = 0, tapi gas TETAP hangus → bukti G No.2 & mitigasi G No.7)
+───────────────────────────────────────────────────────────
+   Revert A — Non-admin mencoba ubahStatus()
+     Alasan   : "UniVoice: hanya admin/BEM"   (modifier onlyAdmin)
+     TX Hash  : <ISI: tx hash failed dari MetaMask Activity>
+     Gas Used : <ISI: dari cast receipt; status=0>
+   Revert B — Admin mencoba kirimAspirasi() / upvote (harus netral)
+     Alasan   : "UniVoice: admin/BEM harus netral, dilarang jadi peserta"  (modifier bukanAdmin)
+     TX Hash  : <ISI: tx hash failed dari MetaMask Activity>
+     Gas Used : <ISI: dari cast receipt; status=0>
+   Revert C — Upvote ganda oleh akun yang sama
+     Alasan   : "UniVoice: sudah mendukung"   (cegah double-vote / sybil)
+     TX Hash  : <ISI: opsional>
+═══════════════════════════════════════════════════════════
+
+
+Bukti Unit Test
+mukubuntu@LAPTOP-P67P5TSE:~/UniVoice$ forge test -vv
+[⠊] Compiling...
+No files changed, compilation skipped
+
+Ran 16 tests for test/UniVoice.t.sol:UniVoiceTest
+[PASS] testAdminTetapBisaUbahStatus() (gas: 198707)
+[PASS] testAdminTidakBolehKirimAspirasi() (gas: 17914)
+[PASS] testAdminTidakBolehUpvote() (gas: 163881)
+[PASS] testDataTetapAdaSetelahDitolak() (gas: 221943)
+[PASS] testDoubleVoteRevert() (gas: 212821)
+[PASS] testGetAllAspirasi() (gas: 313160)
+[PASS] testKirimAspirasi() (gas: 160125)
+[PASS] testNonAdminTolakRevert() (gas: 164358)
+[PASS] testTolakAspirasi() (gas: 266648)
+[PASS] testTolakTanpaCatatanRevert() (gas: 164585)
+[PASS] testUbahStatus() (gas: 198661)
+[PASS] testUbahStatusKeDitolakRevert() (gas: 164391)
+[PASS] testUnvote() (gas: 187504)
+[PASS] testUpdateCatatan() (gas: 268046)
+[PASS] testUpvote() (gas: 221790)
+[PASS] testUpvoteDitolakRevert() (gas: 213142)
+Suite result: ok. 16 passed; 0 failed; 0 skipped; finished in 33.80ms (25.88ms CPU time)
+
+Ran 2 tests for test/Counter.t.sol:CounterTest
+[PASS] testFuzz_SetNumber(uint256) (runs: 256, μ: 28278, ~: 29289)
+[PASS] test_Increment() (gas: 28783)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 43.98ms (20.32ms CPU time)
+
+Ran 2 test suites in 271.05ms (77.78ms CPU time): 18 tests passed, 0 failed, 0 skipped (18 total tests)
+
+Bukti Forge Bild success
+mukubuntu@LAPTOP-P67P5TSE:~/UniVoice$ forge build
+[⠊] Compiling...
+[⠒] Compiling 1 files with Solc 0.8.35
+[⠢] Solc 0.8.35 finished in 943.64ms
+Compiler run successful!
