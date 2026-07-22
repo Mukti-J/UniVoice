@@ -60,6 +60,7 @@ async function setupConnection(addr, account) {
     resetConnection(); return;
   }
   isAdmin = adminOnChain.toLowerCase() === userAddr;
+  terapkanAturanPeran();
   localStorage.setItem("univoice_contract", addr);   // ← ingat alamat, biar refresh tidak kosong
 
   document.getElementById("statusBar").classList.add("connected");
@@ -77,6 +78,7 @@ function resetConnection() {
   cachedList = [];
   document.getElementById("daftarAspirasi").innerHTML =
     `<p style="color:var(--text-dim)">Hubungkan kontrak terlebih dahulu untuk melihat aspirasi.</p>`;
+  terapkanAturanPeran();
 }
 
 // Tombol 🦊 (memicu pop-up hanya kalau belum pernah authorize)
@@ -128,7 +130,7 @@ function renderAspirasi(list) {
       <div class="asp-desc">${escapeHtml(a.deskripsi)}</div>
       <div class="asp-meta"><span>👤 ${a.pengirim.slice(0,6)}...${a.pengirim.slice(-4)}</span><span>🕐 ${tgl}</span><span class="status-badge ${STATUS_CLASS[s]}">${STATUS_LABEL[s]}</span></div>
       ${a.catatanAdmin ? `<div class="admin-notes ${rej ? 'rejected-note' : ''}"><div class="note-label">${rej ? '🚫 Alasan Penolakan:' : '📝 Catatan Admin:'}</div><div>${escapeHtml(a.catatanAdmin)}</div></div>` : ''}
-      ${(s === 0 || s === 1) ? `<div class="vote-row"><span class="vote-count">${a.jumlahDukungan.toString()}</span><span style="font-size:.8rem;color:var(--text-dim)">dukungan</span>${a.sudahDukung ? `<button class="btn btn-yellow btn-sm" onclick="unvote(${a.id})">👎 Unvote</button>` : `<button class="btn btn-green btn-sm" onclick="upvote(${a.id})">👍 Upvote</button>`}</div>` : ''}
+      ${(s === 0 || s === 1) && !isAdmin ? `<div class="vote-row"><span class="vote-count">${a.jumlahDukungan.toString()}</span><span style="font-size:.8rem;color:var(--text-dim)">dukungan</span>${a.sudahDukung ? `<button class="btn btn-yellow btn-sm" onclick="unvote(${a.id})">👎 Unvote</button>` : `<button class="btn btn-green btn-sm" onclick="upvote(${a.id})">👍 Upvote</button>`}</div>` : ''}
       ${isAdmin && !rej ? `<div class="admin-panel"><h3>👑 Panel Admin/BEM</h3><div class="btn-group">${s === 0 ? `<button class="btn btn-primary btn-sm" onclick="ubahStatus(${a.id}, 1)">▶️ Proses</button>` : ""}${s === 1 ? `<button class="btn btn-green btn-sm" onclick="ubahStatus(${a.id}, 2)">✅ Selesaikan</button>` : ""}<button class="btn btn-outline btn-sm" onclick="bukaModalCatatan(${a.id})">📝 Catatan</button><button class="btn btn-red btn-sm" onclick="bukaModalTolak(${a.id})">🚫 Tolak</button></div></div>` : ''}
     </div>`;
   }
@@ -143,6 +145,7 @@ function tutupModalCatatan() { document.getElementById("modalCatatan").classList
 
 // ── WRITE ──
 async function kirimAspirasi() {
+  if (isAdmin) return toast("Admin/BEM harus netral — tidak dapat mengirim aspirasi.", "error");
   if (!signer) return toast("Hubungkan MetaMask!", "error");
   const kat = document.getElementById("kategori").value, desc = document.getElementById("deskripsi").value.trim();
   if (!desc) return toast("Deskripsi kosong!", "error");
@@ -151,6 +154,24 @@ async function kirimAspirasi() {
     toast(`Terkirim! Gas: ${r.gasUsed}`, "success"); addNotif(`📝 Aspirasi [${kat}] terkirim · gas ${r.gasUsed}`);
     document.getElementById("deskripsi").value = ""; await muatData();
   } catch (err) { toast("Gagal: " + (err.shortMessage || err.message), "error"); }
+}
+// Kunci/buka form kirim sesuai peran (admin = netral, tidak boleh jadi peserta)
+function terapkanAturanPeran() {
+  const btn    = document.getElementById("btnKirim");
+  const notice = document.getElementById("adminNotice");
+  const kat    = document.getElementById("kategori");
+  const desc   = document.getElementById("deskripsi");
+  if (isAdmin) {
+    if (btn)  { btn.disabled = true;  btn.textContent = "🔒 Admin netral — tidak dapat mengirim"; }
+    if (kat)  kat.disabled  = true;
+    if (desc) desc.disabled = true;
+    if (notice) notice.style.display = "block";
+  } else {
+    if (btn)  { btn.disabled = false; btn.textContent = "📤 Kirim Aspirasi"; }
+    if (kat)  kat.disabled  = false;
+    if (desc) desc.disabled = false;
+    if (notice) notice.style.display = "none";
+  }
 }
 async function upvote(id) { if (!signer) return; try { const r = await (await contract.dukungAspirasi(id)).wait(); toast(`Upvote! Gas: ${r.gasUsed}`, "success"); await muatData(); } catch (e) { toast("Gagal: " + (e.shortMessage || e.message), "error"); } }
 async function unvote(id) { if (!signer) return; try { const r = await (await contract.batalkanDukungan(id)).wait(); toast(`Unvote! Gas: ${r.gasUsed}`, "success"); await muatData(); } catch (e) { toast("Gagal: " + (e.shortMessage || e.message), "error"); } }

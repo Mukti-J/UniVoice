@@ -222,12 +222,18 @@
     <label for="kategori">Kategori</label>
     <select id="kategori">
       <option value="Fasilitas">Fasilitas</option>
-      <option value="Akademik">Akademik</option>
-      <option value="UKM">UKM</option>
+      <option value="Biaya Kuliah">Biaya Kuliah</option>
+      <option value="Beasiswa">Beasiswa</option>
+      <option value="KBM">KBM</option>
+      <option value="Asisten Dosen">Asisten Dosen</option>
+      <option value="Dosen">Dosen</option>
     </select>
     <label for="deskripsi">Deskripsi Aspirasi</label>
     <textarea id="deskripsi" placeholder="Tuliskan aspirasi atau permasalahan Anda di sini..."></textarea>
-    <button class="btn btn-green" onclick="kirimAspirasi()">📤 Kirim Aspirasi</button>
+    <button class="btn btn-green" id="btnKirim" onclick="kirimAspirasi()">📤 Kirim Aspirasi</button>
+    <p id="adminNotice" style="display:none; margin-top:12px; padding:10px 14px; border-radius:8px; background:#1f1015; border-left:3px solid var(--red); color:var(--red); font-size:.85rem;">
+      🔒 Anda login sebagai <strong>Admin/BEM</strong>. Demi netralitas, admin tidak dapat mengirim aspirasi maupun memihak (vote). Peran Anda: memproses &amp; memoderasi aspirasi mahasiswa.
+    </p>
   </div>
 
   <!-- 3. DAFTAR ASPIRASI -->
